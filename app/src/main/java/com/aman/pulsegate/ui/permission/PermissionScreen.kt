@@ -35,18 +35,22 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aman.pulsegate.R
 import com.aman.pulsegate.ui.theme.PulseGateTheme
@@ -58,6 +62,17 @@ fun PermissionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshPermissionStates()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(uiState.allCriticalGranted) {
         if (uiState.allCriticalGranted) {
@@ -67,12 +82,58 @@ fun PermissionScreen(
 
     val smsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { viewModel.refreshPermissionStates() }
+    ) {
+        viewModel.refreshPermissionStates()
+    }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { viewModel.refreshPermissionStates() }
+    ) {
+        viewModel.refreshPermissionStates()
+    }
 
+    PermissionScreenContent(
+        uiState = uiState,
+        onGrantSms = {
+            smsPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.READ_SMS
+                )
+            )
+        },
+        onGrantNotificationPermission = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        },
+        onGrantNotificationListener = {
+            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        },
+        onGrantBatteryOptimization = {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                "package:${context.packageName}".toUri()
+            )
+            context.startActivity(intent)
+        },
+        onProceed = {
+            if (uiState.allCriticalGranted) {
+                onAllPermissionsGranted()
+            }
+        }
+    )
+}
+
+@Composable
+private fun PermissionScreenContent(
+    uiState: PermissionUiState,
+    onGrantSms: () -> Unit,
+    onGrantNotificationPermission: () -> Unit,
+    onGrantNotificationListener: () -> Unit,
+    onGrantBatteryOptimization: () -> Unit,
+    onProceed: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -91,7 +152,9 @@ fun PermissionScreen(
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = stringResource(R.string.permission_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
@@ -107,14 +170,7 @@ fun PermissionScreen(
                 description = stringResource(R.string.permission_sms_desc),
                 grantState = uiState.receiveSms,
                 isCritical = true,
-                onGrant = {
-                    smsPermissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.RECEIVE_SMS,
-                            Manifest.permission.READ_SMS
-                        )
-                    )
-                }
+                onGrant = onGrantSms
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -126,12 +182,9 @@ fun PermissionScreen(
                     description = stringResource(R.string.permission_notifications_desc),
                     grantState = uiState.postNotifications,
                     isCritical = true,
-                    onGrant = {
-                        notificationPermissionLauncher.launch(
-                            Manifest.permission.POST_NOTIFICATIONS
-                        )
-                    }
+                    onGrant = onGrantNotificationPermission
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -141,11 +194,7 @@ fun PermissionScreen(
                 description = stringResource(R.string.permission_listener_desc),
                 grantState = uiState.notificationListener,
                 isCritical = true,
-                onGrant = {
-                    context.startActivity(
-                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                    )
-                }
+                onGrant = onGrantNotificationListener
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -156,19 +205,15 @@ fun PermissionScreen(
                 description = stringResource(R.string.permission_battery_desc),
                 grantState = uiState.batteryOptimization,
                 isCritical = false,
-                onGrant = {
-                    val intent = Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                        "package:${context.packageName}".toUri()
-                    )
-                    context.startActivity(intent)
-                }
+                onGrant = onGrantBatteryOptimization
             )
 
             Spacer(modifier = Modifier.height(36.dp))
 
             Button(
-                onClick = { onAllPermissionsGranted() },
+                onClick = {
+                    if (uiState.allCriticalGranted) onProceed()
+                },
                 enabled = uiState.allCriticalGranted,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -185,7 +230,9 @@ fun PermissionScreen(
 
             if (uiState.batteryOptimization != GrantState.GRANTED) {
                 OutlinedButton(
-                    onClick = { onAllPermissionsGranted() },
+                    onClick = {
+                        if (uiState.allCriticalGranted) onProceed()
+                    },
                     enabled = uiState.allCriticalGranted,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,11 +274,9 @@ private fun PermissionItem(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
-            imageVector = if (isGranted) Icons.Filled.CheckCircle
-            else Icons.Outlined.CheckCircle,
+            imageVector = if (isGranted) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
             contentDescription = null,
-            tint = if (isGranted) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(28.dp)
         )
 
@@ -259,7 +304,9 @@ private fun PermissionItem(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(2.dp))
+
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
@@ -290,26 +337,18 @@ private fun PermissionItem(
 @Composable
 private fun PermissionScreenPreview() {
     PulseGateTheme(darkTheme = true) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            PermissionItem(
-                icon = Icons.Filled.Phone,
-                title = "SMS Access",
-                description = "Required to receive and forward SMS messages",
-                grantState = GrantState.DENIED,
-                isCritical = true,
-                onGrant = {}
-            )
-            PermissionItem(
-                icon = Icons.Filled.Lock,
-                title = "Notification Listener",
-                description = "Required to capture banking notifications",
-                grantState = GrantState.GRANTED,
-                isCritical = true,
-                onGrant = {}
-            )
-        }
+        PermissionScreenContent(
+            uiState = PermissionUiState(
+                receiveSms = GrantState.DENIED,
+                postNotifications = GrantState.DENIED,
+                notificationListener = GrantState.DENIED,
+                batteryOptimization = GrantState.DENIED
+            ),
+            onGrantSms = {},
+            onGrantNotificationPermission = {},
+            onGrantNotificationListener = {},
+            onGrantBatteryOptimization = {},
+            onProceed = {}
+        )
     }
 }

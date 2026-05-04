@@ -99,6 +99,11 @@
                 tools:node="remove" />
         </provider>
 
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
     </application>
 
 </manifest>

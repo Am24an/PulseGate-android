@@ -1,5 +1,7 @@
 package com.aman.pulsegate.ui.permission
 
+import android.os.Build
+
 enum class GrantState {
     GRANTED,
     DENIED,
@@ -12,9 +14,15 @@ data class PermissionUiState(
     val notificationListener: GrantState = GrantState.NOT_ASKED,
     val batteryOptimization: GrantState = GrantState.NOT_ASKED
 ) {
-    // App cannot function without these three
     val allCriticalGranted: Boolean
-        get() = receiveSms == GrantState.GRANTED &&
-                postNotifications == GrantState.GRANTED &&
-                notificationListener == GrantState.GRANTED
+        get() {
+            val notifSatisfied = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                postNotifications == GrantState.GRANTED
+            } else {
+                true  // permission does not exist below API 33, treat as satisfied
+            }
+            return receiveSms == GrantState.GRANTED &&
+                    notifSatisfied &&
+                    notificationListener == GrantState.GRANTED
+        }
 }

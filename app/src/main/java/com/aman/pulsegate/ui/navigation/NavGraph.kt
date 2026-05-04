@@ -47,11 +47,11 @@ private val bottomNavItems = listOf(
 @Composable
 fun PulseGateNavGraph(
     allPermissionsGranted: Boolean,
-    onStartService: () -> Unit,                          // ← ADD: called once after permission granted
+    onStartService: () -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
-    val startDestination = if (allPermissionsGranted) Screen.Dashboard.route
-    else Screen.Permission.route
+    val startDestination =
+        if (allPermissionsGranted) Screen.Dashboard.route else Screen.Permission.route
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -65,10 +65,8 @@ fun PulseGateNavGraph(
             if (showBottomBar) {
                 NavigationBar {
                     bottomNavItems.forEach { item ->
-                        val selected = currentDestination
-                            ?.hierarchy
-                            ?.any { it.route == item.screen.route } == true
-
+                        val selected =
+                            currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -106,7 +104,7 @@ fun PulseGateNavGraph(
             composable(Screen.Permission.route) {
                 PermissionScreen(
                     onAllPermissionsGranted = {
-                        onStartService()                 // ← START SERVICE: permissions just confirmed
+                        onStartService()
                         navController.navigate(Screen.Dashboard.route) {
                             popUpTo(Screen.Permission.route) { inclusive = true }
                         }
@@ -142,10 +140,10 @@ fun PulseGateNavGraph(
                     navArgument("destinationId") { type = NavType.LongType }
                 )
             ) { backStackEntry ->
-                // getLong returns 0L when key missing — treat 0L as absent → null → Add mode
                 val destinationId = backStackEntry.arguments
                     ?.getLong("destinationId")
                     ?.takeIf { it != 0L }
+
                 AddEditDestinationScreen(
                     destinationId = destinationId,
                     onNavigateBack = { navController.popBackStack() }

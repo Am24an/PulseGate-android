@@ -11,7 +11,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.aman.pulsegate.service.GatewayForegroundService
@@ -25,18 +24,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val allGranted = areCriticalPermissionsGranted()
+
         setContent {
             PulseGateTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val allGranted = remember { areCriticalPermissionsGranted() }
                     PulseGateNavGraph(
                         allPermissionsGranted = allGranted,
-                        onStartService = {
-                            GatewayForegroundService.start(this@MainActivity)
-                        }
+                        onStartService = { GatewayForegroundService.start(this@MainActivity) }
                     )
                 }
             }
@@ -52,7 +51,9 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
-        } else true
+        } else {
+            true
+        }
 
         val listenerGranted = Settings.Secure.getString(
             contentResolver, "enabled_notification_listeners"
