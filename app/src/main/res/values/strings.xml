@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">PulseGate</string>
+    <string name="notification_listener_label">PulseGate Notification Access</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_destinations">Destinations</string>
+    <string name="nav_logs">Logs</string>
+
+    <!-- Permission Screen -->
+    <string name="permission_title">Setup PulseGate</string>
+    <string name="permission_subtitle">Grant the following permissions so PulseGate can receive and forward your messages reliably.</string>
+
+    <string name="permission_sms_title">SMS Access</string>
+    <string name="permission_sms_desc">Required to receive and forward incoming SMS messages.</string>
+
+    <string name="permission_notifications_title">Post Notifications</string>
+    <string name="permission_notifications_desc">Required to show delivery status and keep the service running.</string>
+
+    <string name="permission_listener_title">Notification Listener</string>
+    <string name="permission_listener_desc">Required to capture banking and UPI notifications for forwarding.</string>
+
+    <string name="permission_battery_title">Battery Optimization</string>
+    <string name="permission_battery_desc">Recommended. Prevents Android from killing the gateway service in the background.</string>
+
+    <string name="permission_required_badge">Required</string>
+    <string name="permission_grant">Grant</string>
+    <string name="permission_proceed">Continue</string>
+    <string name="permission_skip_battery">Skip battery optimization</string>
+</resources>
