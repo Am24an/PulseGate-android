@@ -57,13 +57,15 @@ val LightOnPrimaryContainer = Navy900
 
 val LightSecondary = Indigo400
 val LightOnSecondary = White
-val LightSecondaryContainer = Grey200
+
+val LightSecondaryContainer = Color(0xFFDDE1F9)
 val LightOnSecondaryContainer = Navy800
 
 val LightBackground = Color(0xFFF4F6FB)
 val LightOnBackground = Navy900
 val LightSurface = White
 val LightOnSurface = Navy900
+
 val LightSurfaceVariant = Grey200
 val LightOnSurfaceVariant = Navy700
 

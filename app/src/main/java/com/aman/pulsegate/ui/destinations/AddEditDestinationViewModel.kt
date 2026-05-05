@@ -21,6 +21,7 @@ data class FormState(
     val method: String = "POST",
     val headersJson: String = "",
     val apiKey: String = "",
+    val payloadTemplate: String = Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE,
     val timeoutSeconds: Int = 15,
     val isActive: Boolean = true,
     val createdAt: Long = 0L,
@@ -53,6 +54,7 @@ class AddEditDestinationViewModel @Inject constructor(
                     method = destination.method,
                     headersJson = destination.headersJson,
                     apiKey = destination.apiKey ?: "",
+                    payloadTemplate = destination.payloadTemplate,
                     timeoutSeconds = destination.timeoutSeconds,
                     isActive = destination.isActive,
                     createdAt = destination.createdAt
@@ -79,6 +81,9 @@ class AddEditDestinationViewModel @Inject constructor(
     fun onApiKeyChange(value: String) =
         _formState.update { it.copy(apiKey = value) }
 
+    fun onPayloadTemplateChange(value: String) =
+        _formState.update { it.copy(payloadTemplate = value) }
+
     fun onTimeoutChange(value: Int) =
         _formState.update { it.copy(timeoutSeconds = value) }
 
@@ -100,6 +105,7 @@ class AddEditDestinationViewModel @Inject constructor(
                 method = state.method,
                 headersJson = state.headersJson.trim(),
                 apiKey = state.apiKey.trim().ifBlank { null },
+                payloadTemplate = state.payloadTemplate.trim(),
                 timeoutSeconds = state.timeoutSeconds,
                 isActive = state.isActive,
                 createdAt = if (id == null) System.currentTimeMillis() else state.createdAt

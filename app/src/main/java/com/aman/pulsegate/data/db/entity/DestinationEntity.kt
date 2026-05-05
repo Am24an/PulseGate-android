@@ -37,6 +37,9 @@ data class DestinationEntity(
     @ColumnInfo(name = "api_key")
     val apiKey: String?,
 
+    @ColumnInfo(name = "payload_template")
+    val payloadTemplate: String,
+
     @ColumnInfo(name = "timeout_seconds")
     val timeoutSeconds: Int,
 
@@ -54,6 +57,7 @@ data class DestinationEntity(
         method = method,
         headersJson = headersJson,
         apiKey = apiKey,
+        payloadTemplate = payloadTemplate,
         timeoutSeconds = timeoutSeconds,
         isActive = isActive,
         createdAt = createdAt
@@ -68,6 +72,7 @@ data class DestinationEntity(
             method = domain.method,
             headersJson = domain.headersJson,
             apiKey = domain.apiKey,
+            payloadTemplate = domain.payloadTemplate,
             timeoutSeconds = domain.timeoutSeconds,
             isActive = domain.isActive,
             createdAt = domain.createdAt

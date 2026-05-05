@@ -38,11 +38,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aman.pulsegate.domain.model.Destination
 import com.aman.pulsegate.domain.model.DestinationType
 import com.aman.pulsegate.ui.theme.PulseGateTheme
 import kotlin.math.roundToInt
-
-// ── Entry point — owns ViewModel + LaunchedEffect side effects only ──────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,13 +70,12 @@ fun AddEditDestinationScreen(
         onMethodChange = viewModel::onMethodChange,
         onHeadersJsonChange = viewModel::onHeadersJsonChange,
         onApiKeyChange = viewModel::onApiKeyChange,
+        onPayloadTemplateChange = viewModel::onPayloadTemplateChange,
         onTimeoutChange = viewModel::onTimeoutChange,
         onIsActiveChange = viewModel::onIsActiveChange,
         onSave = viewModel::save
     )
 }
-
-// ── Stateless content — no ViewModel, no side-effects, fully previewable ─────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +89,7 @@ private fun AddEditDestinationScreenContent(
     onMethodChange: (String) -> Unit,
     onHeadersJsonChange: (String) -> Unit,
     onApiKeyChange: (String) -> Unit,
+    onPayloadTemplateChange: (String) -> Unit,
     onTimeoutChange: (Int) -> Unit,
     onIsActiveChange: (Boolean) -> Unit,
     onSave: () -> Unit
@@ -120,7 +119,7 @@ private fun AddEditDestinationScreenContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
@@ -192,7 +191,25 @@ private fun AddEditDestinationScreenContent(
                         .fillMaxWidth()
                         .height(120.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 4,
+                    maxLines = 8
+                )
+
+                OutlinedTextField(
+                    value = formState.payloadTemplate,
+                    onValueChange = onPayloadTemplateChange,
+                    label = { Text("Payload Template (JSON)") },
+                    supportingText = {
+                        Text("Use placeholders like {{sender}}, {{message}}, {{received_at}}")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 6,
+                    maxLines = 12
                 )
             }
 
@@ -270,8 +287,6 @@ private fun AddEditDestinationScreenContent(
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
-
 @Preview(showBackground = true, backgroundColor = 0xFF0F1117)
 @Composable
 private fun AddDestinationPreview() {
@@ -286,6 +301,7 @@ private fun AddDestinationPreview() {
             onMethodChange = {},
             onHeadersJsonChange = {},
             onApiKeyChange = {},
+            onPayloadTemplateChange = {},
             onTimeoutChange = {},
             onIsActiveChange = {},
             onSave = {}
@@ -306,6 +322,7 @@ private fun EditWebhookPreview() {
                 method = "POST",
                 headersJson = "{\"X-Api-Key\": \"secret\"}",
                 apiKey = "bearer token",
+                payloadTemplate = Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE,
                 timeoutSeconds = 15,
                 isActive = true
             ),
@@ -316,6 +333,7 @@ private fun EditWebhookPreview() {
             onMethodChange = {},
             onHeadersJsonChange = {},
             onApiKeyChange = {},
+            onPayloadTemplateChange = {},
             onTimeoutChange = {},
             onIsActiveChange = {},
             onSave = {}
@@ -341,6 +359,7 @@ private fun AddTelegramPreview() {
             onMethodChange = {},
             onHeadersJsonChange = {},
             onApiKeyChange = {},
+            onPayloadTemplateChange = {},
             onTimeoutChange = {},
             onIsActiveChange = {},
             onSave = {}

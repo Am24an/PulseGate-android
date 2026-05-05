@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "77b783a9280684be11433eb6b6196c67",
+    "identityHash": "32d1bc736f3ff0847ac9e4816082f768",
     "entities": [
       {
         "tableName": "incoming_events",
@@ -237,7 +237,7 @@
       },
       {
         "tableName": "destinations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `base_url` TEXT NOT NULL, `method` TEXT NOT NULL, `headers_json` TEXT NOT NULL, `api_key` TEXT, `timeout_seconds` INTEGER NOT NULL, `is_active` INTEGER NOT NULL, `created_at` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `base_url` TEXT NOT NULL, `method` TEXT NOT NULL, `headers_json` TEXT NOT NULL, `api_key` TEXT, `payload_template` TEXT NOT NULL, `timeout_seconds` INTEGER NOT NULL, `is_active` INTEGER NOT NULL, `created_at` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -279,6 +279,12 @@
             "fieldPath": "apiKey",
             "columnName": "api_key",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "payloadTemplate",
+            "columnName": "payload_template",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "timeoutSeconds",
@@ -423,7 +429,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '77b783a9280684be11433eb6b6196c67')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '32d1bc736f3ff0847ac9e4816082f768')"
     ]
   }
 }

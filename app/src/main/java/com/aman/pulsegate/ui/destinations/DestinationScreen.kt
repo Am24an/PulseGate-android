@@ -90,14 +90,13 @@ private fun DestinationsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .statusBarsPadding()
                 .padding(horizontal = 20.dp)
         ) {
             Text(
                 text = "Destinations",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
+                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
             )
 
             when {
@@ -287,7 +286,7 @@ private fun TypeBadge(type: DestinationType) {
     )
 }
 
-// ── Previews ─────────────────────────────────────────────────────────────────
+// Previews
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F1117)
 @Composable
@@ -304,6 +303,7 @@ private fun DestinationsListPreview() {
                         method = "POST",
                         headersJson = "",
                         apiKey = null,
+                        payloadTemplate = Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE,
                         timeoutSeconds = 15,
                         isActive = true,
                         createdAt = System.currentTimeMillis()
@@ -316,6 +316,7 @@ private fun DestinationsListPreview() {
                         method = "POST",
                         headersJson = "",
                         apiKey = "bot-token",
+                        payloadTemplate = Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE,
                         timeoutSeconds = 15,
                         isActive = false,
                         createdAt = System.currentTimeMillis()
@@ -361,6 +362,7 @@ private fun DestinationCardPreview() {
                 method = "POST",
                 headersJson = "",
                 apiKey = null,
+                payloadTemplate = Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE,
                 timeoutSeconds = 15,
                 isActive = true,
                 createdAt = System.currentTimeMillis()

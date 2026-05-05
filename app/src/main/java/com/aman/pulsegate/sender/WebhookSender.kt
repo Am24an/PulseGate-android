@@ -33,7 +33,7 @@ class WebhookSender @Inject constructor(
         return try {
             val client = okHttpClientProvider.provide(destination.timeoutSeconds)
             val method = destination.method.uppercase()
-            val payload = buildPayload(event)
+            val payload = buildPayload(event, destination)
 
             val requestBuilder = Request.Builder().url(destination.baseUrl)
             if (method == "GET") {
@@ -73,18 +73,28 @@ class WebhookSender @Inject constructor(
         }
     }
 
-    private fun buildPayload(event: IncomingEvent): String {
-        val map: Map<String, Any?> = mapOf(
-            "id" to event.id,
-            "source_type" to event.sourceType.name,
-            "sender" to event.sender,
-            "title" to event.title,
-            "message" to event.message,
-            "app_package" to event.appPackage,
-            "received_at" to event.receivedTimestamp,
-            "created_at" to event.createdAt
-        )
-        return mapAdapter.toJson(map)
+    // ✅ CHANGED: Renders destination.payloadTemplate by replacing {{tokens}} with actual event values.
+    // Falls back to DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE if template is blank.
+    // Type safety is the caller's responsibility via the template — strings need quotes in the
+    // template itself (e.g. "{{sender}}"), numbers do not (e.g. {{received_at}}).
+
+    private fun buildPayload(event: IncomingEvent, destination: Destination): String {
+        val template = destination.payloadTemplate
+            .takeIf { it.isNotBlank() }
+            ?: run {
+                Timber.w("WebhookSender: payloadTemplate is blank for destination=${destination.name}, using default")
+                Destination.DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE
+            }
+
+        return template
+            .replace("{{sender}}", event.sender)
+            .replace("{{message}}", event.message)
+            .replace("{{received_at}}", event.receivedTimestamp.toString())
+            .replace("{{title}}", event.title.orEmpty())
+            .replace("{{source_type}}", event.sourceType.name)
+            .replace("{{app_package}}", event.appPackage.orEmpty())
+            .replace("{{id}}", event.id.toString())
+            .replace("{{created_at}}", event.createdAt.toString())
     }
 
     private fun applyHeaders(builder: Request.Builder, destination: Destination) {

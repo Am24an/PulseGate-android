@@ -53,11 +53,28 @@ class AddDestinationUseCase @Inject constructor(
         if (destination.type == DestinationType.TELEGRAM && destination.apiKey.isNullOrBlank())
             return "Telegram bot token (API key) must not be blank"
 
+        // NEW: Payload template validation — only for WEBHOOK type.
+        // Blank is allowed — WebhookSender falls back to default template automatically.
+
+        if (destination.type == DestinationType.WEBHOOK &&
+            destination.payloadTemplate.isNotBlank()
+        ) {
+            val trimmed = destination.payloadTemplate.trim()
+            if (!trimmed.startsWith("{") || !trimmed.endsWith("}"))
+                return "Payload template must be a valid JSON object"
+
+            if (UNCLOSED_PLACEHOLDER_REGEX.containsMatchIn(trimmed))
+                return "Payload template has an unclosed placeholder — check for typos like {{sender}"
+        }
+
         return null
     }
 
     companion object {
         private const val TIMEOUT_MIN = 5
         private const val TIMEOUT_MAX = 60
+
+        // Matches {{ not followed by a closing }} — catches {{sender} or {{message typos
+        private val UNCLOSED_PLACEHOLDER_REGEX = Regex("""\{\{(?![^{}]*\}\})""")
     }
 }

@@ -67,7 +67,7 @@ class TelegramSender @Inject constructor(
                 if (it.isSuccessful) {
                     SendResult.Success(httpCode = it.code, latencyMs = latencyMs)
                 } else {
-                    val responseBody = runCatching { it.body?.string() }.getOrNull()
+                    val responseBody = runCatching { it.body.string() }.getOrNull()
                     SendResult.HttpError(code = it.code, body = responseBody)
                 }
             }

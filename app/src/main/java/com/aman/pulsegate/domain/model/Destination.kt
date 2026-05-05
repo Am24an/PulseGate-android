@@ -8,7 +8,19 @@ data class Destination(
     val method: String,
     val headersJson: String,
     val apiKey: String?,
+    val payloadTemplate: String,
     val timeoutSeconds: Int,
     val isActive: Boolean,
     val createdAt: Long
-)
+) {
+    companion object {
+
+        val DEFAULT_WEBHOOK_PAYLOAD_TEMPLATE: String = """
+            {
+              "sender": "{{sender}}",
+              "message": "{{message}}",
+              "received_at": {{received_at}}
+            }
+        """.trimIndent()
+    }
+}
